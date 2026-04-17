@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Tech Lab ELTE</title>
+    <style>
+        /* Általános box-sizing beállítás a méretezési problémák elkerülésére */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #012850;
+            --nav-bg: rgba(1, 40, 80, 0.90); 
+            --nav-text: #ffffff;
+            --accent-light: #ffffff;
+            --details-bg: #ffffff;
+            --details-border: #012850;
+        }
+        
+        @font-face {
+            font-family: 'TeamFont';
+            src: url('font.ttf') format('truetype'),
+                 url('font.otf') format('opentype');
+            font-weight: bold;
+            font-style: normal;
+        }
+
+        html { 
+            scroll-behavior: smooth; 
+            scroll-padding-top: 65px; 
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            position: relative;
+            overflow-x: hidden; /* Próbálja megakadályozni a vízszintes görgetést */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .animated-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.05;
+            background-image: url('logo.svg');
+            background-repeat: repeat;
+            background-size: 150px 150px;
+            background-position: 0 0;
+            animation: diagonalPattern 120s linear infinite;
+        }
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle, rgba(255,255,255,0) 60%, rgba(255,255,255,0.8) 100%);
+        }
+        @keyframes diagonalPattern {
+            from { background-position: 0 0; }
+            to { background-position: 1500px 1500px; }
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            min-height: 60px;
+            background: var(--nav-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            text-align: center;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap; /* Engedi a sortörést, ha nem fér ki */
+        }
+        nav a {
+            color: var(--nav-text);
+            text-decoration: none;
+            margin: 0 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: color 0.3s;
+            letter-spacing: 1px;
+        }
+        nav a:hover { color: var(--accent-light); opacity: 0.8; }
+        .lang-switch {
+            border: 1px solid var(--accent-light);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        header {
+            margin-top: 60px; 
+            height: calc(100vh - 60px); 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('csapatkep.jpg') center 20% / cover no-repeat;
+            padding: 0 20px;
+            color: #ffffff;
+        }
+        header h1 {
+            font-family: 'TeamFont', sans-serif;
+            font-size: 4.5rem; /* Fix nagy méret */
+            margin: 0;
+            transform: translateY(-100px); 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+        }
+
+        section {
+            padding: 80px 20px; /* Fix nagy belső margó */
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            flex-grow: 1;
+        }
+        h2 {
+            text-align: center;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--details-border);
+            padding-bottom: 10px;
+        }
+
+        .project-grid {
+            display: flex;
+            flex-wrap: wrap; /* Engedi a kártyák egymás alá ugrását */
+            justify-content: center;
+            gap: 20px;
+        }
+        .project-card {
+            background: var(--details-bg);
+            border: 2px solid var(--details-border);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            flex: 1 1 300px; /* Rugalmas növekedés, min 300px induló méret */
+            max-width: 480px;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(1, 40, 80, 0.15);
+        }
+        .project-card h3 {
+            margin-top: 0;
+            color: var(--text-color);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(1, 40, 80, 0.8);
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background-color: #ffffff;
+            margin: 5vh auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: var(--text-color);
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 20;
+        }
+        .modal-body {
+            display: flex;
+            flex-wrap: wrap; /* Engedi, hogy szűk helyen a szöveg a kép alá ugorjon */
+            gap: 30px;
+            align-items: flex-start;
+            margin-top: 20px;
+        }
+        
+        .gallery-container {
+            position: relative;
+            flex: 1 1 300px; /* Alapméret 300px, tud nőni */
+            display: flex;
+            align-items: center;
+            max-width: 100%; /* Módosítva, hogy szűk helyen kitöltse a teret */
+        }
+        .modal-gallery {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
+            width: 100%;
+        }
+        .modal-gallery::-webkit-scrollbar {
+            display: none; 
+        }
+        .modal-gallery img {
+            width: 100%;
+            height: 350px; 
+            object-fit: contain; 
+            background-color: #ffffff; 
+            flex-shrink: 0;
+            scroll-snap-align: center;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(1, 40, 80, 0.7);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            cursor: pointer;
+            border-radius: 50%;
+            z-index: 10;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        .slider-btn.prev { left: 10px; }
+        .slider-btn.next { right: 10px; }
+        .slider-btn:hover { background: rgba(1, 40, 80, 1); }
+
+        .modal-text {
+            flex: 1 1 300px; /* Szöveg rész is rugalmas */
+            text-align: left;
+        }
+        .modal-text h3 { margin-top: 0; border-bottom: 2px solid var(--text-color); padding-bottom: 10px; }
+
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            padding: 10px 0;
+            -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+            mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        .marquee-track {
+            display: flex;
+            gap: 30px;
+            width: max-content;
+            animation: scrollMarquee 20s linear infinite;
+        }
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
+        .sponsor-card {
+            flex: 0 0 auto;
+            width: 200px;
+            height: 100px;
+            background-color: #ffffff;
+            border: 2px solid var(--details-border);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .sponsor-card:hover { 
+            transform: scale(1.05); 
+            box-shadow: 0 5px 15px rgba(1, 40, 80, 0.15);
+        }
+        .sponsor-card img { 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+        }
+
+        @keyframes scrollMarquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-50% - 15px)); }
+        }
+
+        #contact a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        #contact a:hover {
+            opacity: 0.7;
+        }
+
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px 0;
+            background: var(--nav-bg);
+            color: var(--nav-text);
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            margin-top: auto;
+        }
+        /* NINCS DEDIKÁLT @media (max-width: 768px) BLOKK */
+    </style>
+</head>
+<body>
+
+    <div class="animated-background"></div>
+    <div class="background-overlay"></div>
+
+    <nav>
+        <a href="#about">Csapatról</a>
+        <a href="#projects">Projektek</a>
+        <a href="#students">Hallgatóknak</a>
+        <a href="#sponsors">Szponzorok</a>
+        <a href="#contact">Kapcsolat</a>
+        <a href="en.html" class="lang-switch">EN</a>
+    </nav>
+
+    <header id="home">
+        <h1>Student Tech Lab ELTE</h1>
+    </header>
+
+    <section id="about">
+        <h2>A Csapatról</h2>
+        <p>A <strong>Student Tech Lab</strong> az ELTE Savaria Egyetemi Központban, a Savaria Műszaki Intézethez tartozó hallgatói labor és az ehhez szorosan kapcsolódó versenycsapat.</p>
+        <p>Fő profilunk, hogy teret, eszközöket, szakmai segítséget és közösséget biztosítsunk a hallgatói ötletek, projektfeladatok és önálló fejlesztések megvalósításához. Emellett saját kezdeményezéseken is dolgozunk, valamint céges együttműködésekben létrejövő projekteken is részt veszünk.</p>
+        <p>Célunk, hogy a hallgatók a tantermi tudáson túl gyakorlati tapasztalatot is szerezzenek, és valós műszaki, fejlesztési vagy versenyfeladatokban próbálhassák ki magukat.</p>
+    </section>
+
+    <section id="projects">
+        <h2>Néhány érdekesebb projektünk</h2>
+        <div class="project-grid">
+            <div class="project-card" onclick="openModal('modal-projekt1')">
+                <h3>Moduláris Holttérfigyelő rendszer</h3>
+                <p>Kattints a részletekért...</p>
+            </div>
+
+            <div class="project-card" onclick="openModal('modal-projekt2')">
+                <h3>5-tengelyes 3D nyomtató</h3>
+                <p>Kattints a részletekért...</p>
+            </div>
+
+            <div class="project-card" onclick="openModal('modal-projekt3')">
+                <h3>Egyéb projektek</h3>
+                <p>Kattints a részletekért...</p>
+            </div>
+        </div>
+    </section>
+
+    <div id="modal-projekt1" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal-projekt1')">&times;</span>
+            <div class="modal-body">
+                <div class="gallery-container">
+                    <button class="slider-btn prev" onclick="slideGallery(this, -1)">&#10094;</button>
+                    <div class="modal-gallery">
+                        <img src="projekt1-kep1.jpg" alt="Holttérfigyelő 1">
+                        <img src="projekt1-kep2.png" alt="Holttérfigyelő 2">
+                        <img src="projekt1-kep3.jpg" alt="Holttérfigyelő 3">
+                    </div>
+                    <button class="slider-btn next" onclick="slideGallery(this, 1)">&#10095;</button>
+                </div>
+                <div class="modal-text">
+                    <h3>Moduláris Holttérfigyelő rendszer</h3>
+                    <p>A projekt célja a közlekedésbiztonság növelése közúti járművek esetében.</p>
+                    <p>Az általunk fejlesztett rendszer a jármű nehezen belátható területeit (holttereit) figyeli, és egy kijelzőn keresztül segíti a vezetőt abban, hogy észlelje, tartózkodik-e ott gyalogos vagy más jármű.</p>
+                    <p>A projekt az országos KTI–ELTE közlekedésbiztonsági ötletpályázatra készült, ahol a legjobb pályázatok között <strong>3. helyezést</strong> ért el.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-projekt2" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal-projekt2')">&times;</span>
+            <div class="modal-body">
+                <div class="gallery-container">
+                    <button class="slider-btn prev" onclick="slideGallery(this, -1)">&#10094;</button>
+                    <div class="modal-gallery">
+                        <img src="projekt2-kep1.jpg" alt="3D nyomtató">
+                        <img src="projekt2-kep2.jpg" alt="projekt4">
+                        <img src="projekt2-kep3.jpg" alt="projekt4">
+                    </div>
+                    <button class="slider-btn next" onclick="slideGallery(this, 1)">&#10095;</button>
+                </div>
+                <div class="modal-text">
+                    <h3>5-tengelyes 3D nyomtató</h3>
+                    <p>Egy hallgatói fejlesztés, amely a 3D nyomtatás alternatív megközelítésére fókuszál.</p>
+                    <p>A rendszer lehetővé teszi, hogy kilépjünk a hagyományos, háromtengelyes mozgástartomány korlátaiból, és új nyomtatási stratégiákkal kísérletezzünk.</p>
+                    <p>A projekt eredményeként hallgatótársunk <strong>OTDK 1. helyezést</strong> ért el.</p>
+                    <p>A fejlesztés jelenleg is folyamatban van, a rendszerrel kapcsolatos kísérletek továbbra is zajlanak.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-projekt3" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('modal-projekt3')">&times;</span>
+            <div class="modal-body">
+                <div class="gallery-container">
+                    <button class="slider-btn prev" onclick="slideGallery(this, -1)">&#10094;</button>
+                    <div class="modal-gallery">
+                        <img src="projekt3-kep1.jpg" alt="3D nyomtató">
+                        <img src="projekt3-kep2.jpg" alt="3D nyomtató">
+                        <img src="projekt3-kep3.png" alt="3D nyomtató">
+                        <img src="projekt3-kep4.jpg" alt="3D nyomtató">
+                        <img src="projekt3-kep5.jpg" alt="3D nyomtató">
+                        <img src="projekt3-kep6.jpg" alt="3D nyomtató">
+                        <img src="projekt3-kep7.png" alt="3D nyomtató">
+                    </div>
+                    <button class="slider-btn next" onclick="slideGallery(this, 1)">&#10095;</button>
+                </div>
+                <div class="modal-text">
+                    <h3>Mivel foglalkozunk még?</h3>
+                    <p>A nagyobb projektek mellett rengeteg kisebb fejlesztés is fut a laborban. Leginkább 3D nyomtatással, elektronikával foglalkozunk sokszor kísérleti jelleggel.</p>
+                    <p>Repülő modellek, robotkarok, hangtechnikai eszközök és egyedi fejlesztések is készültek már a laborban.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section id="students">
+        <h2>Hallgatóknak</h2>
+        <p style="text-align: center; font-size: 1.2rem; margin-bottom: 30px;">
+            <strong>Érdekel, mivel foglalkozunk?</strong><br>
+            A labor nyitott a hallgatók számára, akár meglévő projektekbe kapcsolódnál be, akár saját ötleted van.
+        </p>
+
+        <div style="background: var(--details-bg); padding: 25px; border: 2px solid var(--details-border); border-radius: 8px; text-align: center; max-width: 600px; margin: 0 auto 30px auto;">
+            <p style="font-size: 1.1rem; margin: 0;">
+                <strong>Helyszín:</strong><br>
+                Személyesen az A és B épület között, a parkoló bejáratával szembeni lejárón, a <strong>BA02</strong>-es teremben találsz meg minket.
+            </p>
+        </div>
+
+        <p style="text-align: center; margin-bottom: 0;">
+            Ha nem találsz ott senkit, emailben is felveheted velünk a kapcsolatot:<br>
+            <a href="mailto:studenttechlab@inf.elte.hu" style="color: var(--text-color); font-weight: bold; text-decoration: underline;">studenttechlab@inf.elte.hu</a>
+        </p>
+    </section>
+
+    <section id="sponsors">
+        <h2>Szponzorok</h2>
+        <p style="text-align: center; margin-bottom: 30px;">Támogatóink, akik nélkül nem tartanánk itt:</p>
+        
+        <div class="marquee-container">
+            <div class="marquee-track">
+                <a href="https://hu.tdk-electronics.tdk.com/" target="_blank" class="sponsor-card"><img src="szponzor1-logo.png" alt="TDK"></a>
+                <a href="https://fireg.hu/" target="_blank" class="sponsor-card"><img src="szponzor2-logo.png" alt="Fireg"></a>
+                <a href="https://www.szombathelyigepesz.hu/" target="_blank" class="sponsor-card"><img src="szponzor3-logo.png" alt="Szombathelyi gépész"></a>
+                <a href="https://sek.elte.hu/" target="_blank" class="sponsor-card"><img src="szponzor4-logo.png" alt="ELTE"></a>
+                
+                <a href="https://hu.tdk-electronics.tdk.com/" target="_blank" class="sponsor-card"><img src="szponzor1-logo.png" alt="TDK"></a>
+                <a href="https://fireg.hu/" target="_blank" class="sponsor-card"><img src="szponzor2-logo.png" alt="Fireg"></a>
+                <a href="https://www.szombathelyigepesz.hu/" target="_blank" class="sponsor-card"><img src="szponzor3-logo.png" alt="Szombathelyi gépész"></a>
+                <a href="https://sek.elte.hu/" target="_blank" class="sponsor-card"><img src="szponzor4-logo.png" alt="ELTE"></a>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" style="text-align: center;">
+        <h2>Kapcsolat</h2>
+        <p>Email: <a href="mailto: studenttechlab@inf.elte.hu">studenttechlab@inf.elte.hu</a></p>
+        <p style="margin-top: 20px;">
+            <a href="https://www.facebook.com/szombathelyigepesz/" target="_blank" style="margin: 0 15px;">Facebook</a> | 
+            <a href="https://www.instagram.com/szombathelyigepesz/" target="_blank" style="margin: 0 15px;">Instagram</a> | 
+            <a href="https://www.youtube.com/channel/UC2YR0qRZolGIkIUHlff7uWA" target="_blank" style="margin: 0 15px;">YouTube</a>
+        </p>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Student Tech Lab ELTE.</p>
+    </footer>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = "block";
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = "none";
+                document.body.style.overflow = "auto";
+            }
+        }
+
+        function slideGallery(btn, direction) {
+            const gallery = btn.parentElement.querySelector('.modal-gallery');
+            const scrollAmount = gallery.clientWidth;
+            gallery.scrollBy({ left: scrollAmount * direction, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
